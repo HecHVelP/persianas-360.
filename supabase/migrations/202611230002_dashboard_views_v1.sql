@@ -42,7 +42,7 @@ with (security_invoker = true)
 as
 select
   a.organization_id,
-  count(*) filter (where a.status = 'confirmed' and (a.starts_at at time zone coalesce(o.timezone,'Europe/Madrid'))::date = (now() at time zone coalesce(o.timezone,'Europe/Madrid'))::date as appointments_today,
+  count(*) filter (where a.status = 'confirmed' and (a.starts_at at time zone coalesce(o.timezone,'Europe/Madrid'))::date = (now() at time zone coalesce(o.timezone,'Europe/Madrid'))::date) as appointments_today,
   count(*) filter (where a.status = 'confirmed' and a.starts_at >= now() and a.starts_at < now() + interval '7 days') as appointments_next_7d,
   count(*) filter (where a.status = 'confirmed') as appointments_confirmed,
   count(*) filter (where a.status = 'cancelled') as appointments_cancelled
