@@ -56,6 +56,43 @@ returns boolean language sql stable security definer set search_path = public as
   );
 $$;
 
+create or replace function public.is_profile_in_same_org(p_user_id uuid)
+returns boolean language sql stable security definer set search_path = public as $
+  select exists (
+    select 1
+    from public.organization_members mine
+    join public.organization_members theirs on theirs.organization_id = mine.organization_id
+    where mine.user_id = auth.uid() and mine.active
+      and theirs.user_id = p_user_id and theirs.active
+  );
+$;
+
+revoke all on function public.is_org_member(uuid) from public;
+revoke all on function public.has_org_role(uuid,text[]) from public;
+revoke all on function public.is_profile_in_same_org(uuid) from public;
+grant execute on function public.is_org_member(uuid) to authenticated;
+grant execute on function public.has_org_role(uuid,text[]) to authenticated;
+grant execute on function public.is_profile_in_same_org(uuid) to authenticated;
+
+create or replace function public.handle_new_auth_user_profile()
+returns trigger language plpgsql security definer set search_path = public as $
+begin
+  insert into public.profiles(id,full_name,preferred_language)
+  values (
+    new.id,
+    coalesce(new.raw_user_meta_data->>'full_name',new.raw_user_meta_data->>'name'),
+    coalesce(new.raw_user_meta_data->>'preferred_language','es')
+  )
+  on conflict (id) do nothing;
+  return new;
+end;
+$;
+
+drop trigger if exists on_auth_user_created_profile on auth.users;
+create trigger on_auth_user_created_profile
+after insert on auth.users
+for each row execute function public.handle_new_auth_user_profile();
+
 create table if not exists public.customers (
   id uuid primary key default gen_random_uuid(),
   organization_id uuid not null references public.organizations(id) on delete cascade,
@@ -367,9 +404,12 @@ alter table public.availability_exceptions enable row level security;
 alter table public.automation_settings enable row level security;
 
 create policy org_select_members on public.organizations for select to authenticated using (public.is_org_member(id));
-create policy profile_select_self on public.profiles for select to authenticated using (id = auth.uid());
+create policy profile_select_self on public.profiles for select to authenticated using (id = auth.uid() or public.is_profile_in_same_org(id));
 create policy profile_update_self on public.profiles for update to authenticated using (id = auth.uid()) with check (id = auth.uid());
 create policy members_select_org on public.organization_members for select to authenticated using (public.is_org_member(organization_id));
+create policy members_insert_admin on public.organization_members for insert to authenticated with check (public.has_org_role(organization_id,array['owner','admin']));
+create policy members_update_admin on public.organization_members for update to authenticated using (public.has_org_role(organization_id,array['owner','admin'])) with check (public.has_org_role(organization_id,array['owner','admin']));
+create policy members_delete_admin on public.organization_members for delete to authenticated using (public.has_org_role(organization_id,array['owner','admin']));
 
 do $$
 declare t text;
