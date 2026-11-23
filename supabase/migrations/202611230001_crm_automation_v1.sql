@@ -81,7 +81,7 @@ begin
   values (
     new.id,
     coalesce(new.raw_user_meta_data->>'full_name',new.raw_user_meta_data->>'name'),
-    coalesce(new.raw_user_meta_data->>'preferred_language','es')
+    case when new.raw_user_meta_data->>'preferred_language' in ('es','ca','en','other') then new.raw_user_meta_data->>'preferred_language' else 'es' end
   )
   on conflict (id) do nothing;
   return new;
