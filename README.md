@@ -39,11 +39,23 @@ Guiar al técnico durante una intervención mediante un protocolo secuencial y a
 
 ## Estado y próximos pasos
 
-Primero validaremos con los socios los tipos de persiana, los componentes y el orden real de revisión. Después implementaremos el flujo de inspección y una primera ficha de intervención con datos de prueba.
+La rama `feature/crm-automation-v1` incorpora el diseño e implementación inicial del CRM y automatización: migraciones SQL, workflows, contrato del agente WhatsApp, API y checklist de configuración. La app conectada y los servicios externos aún no están desplegados.
+
+## CRM y automatización v1
+
+- `docs/crm-automation-v1.md`: arquitectura, ciclo de vida del lead y reglas.
+- `docs/workflows-v1.md`: workflows WF-01 a WF-10.
+- `docs/whatsapp-agent-v1.json`: contrato y prompt del agente.
+- `docs/api-contract-v1.md`: endpoints y contratos.
+- `docs/setup-v1.md`: setup y pruebas de aceptación.
+- `supabase/migrations/202611230001_crm_automation_v1.sql`: esquema CRM y RLS.
+- `supabase/migrations/202611230002_dashboard_views_v1.sql`: vistas KPI.
+
+**Importante:** las migraciones están preparadas, pero aún no se han aplicado. El proyecto Lovable existente tiene la base de datos desactivada y el workspace está sin créditos; por eso no se ha modificado ni desplegado la app en producción.
 
 ## Desarrollo
 
-La propuesta inicial es React + TypeScript para la interfaz y Supabase para autenticación, base de datos y almacenamiento, siempre dentro de los límites gratuitos disponibles. No se deben subir claves, contraseñas ni datos personales reales al repositorio.
+React + TypeScript para la interfaz y Supabase para Auth, PostgreSQL y Storage, dentro de límites gratuitos verificados antes de provisionar. No subir claves, contraseñas ni datos personales reales al repositorio.
 
 ## Aviso sobre el estado técnico
 
