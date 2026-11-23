@@ -71,3 +71,13 @@ select
   count(*) filter (where priority in ('high','urgent') and status in ('open','in_progress')) as tasks_priority
 from public.follow_up_tasks
 group by organization_id;
+
+-- Explicit read access for authenticated app users; RLS is enforced by the
+-- security_invoker views and underlying organization-scoped tables.
+grant select on public.dashboard_lead_counts to authenticated;
+grant select on public.dashboard_leads_by_status to authenticated;
+grant select on public.dashboard_leads_by_source to authenticated;
+grant select on public.dashboard_service_mix to authenticated;
+grant select on public.dashboard_appointments to authenticated;
+grant select on public.dashboard_work_orders to authenticated;
+grant select on public.dashboard_human_tasks to authenticated;
