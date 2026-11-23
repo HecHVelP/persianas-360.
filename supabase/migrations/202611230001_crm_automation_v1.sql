@@ -422,5 +422,36 @@ begin
   end loop;
 end $$;
 
+
+-- Sensitive configuration and queue writes are restricted to admins/dispatchers.
+drop policy if exists automation_settings_insert_org on public.automation_settings;
+drop policy if exists automation_settings_update_org on public.automation_settings;
+create policy automation_settings_insert_admin on public.automation_settings for insert to authenticated
+  with check (public.has_org_role(organization_id,array['owner','admin']));
+create policy automation_settings_update_admin on public.automation_settings for update to authenticated
+  using (public.has_org_role(organization_id,array['owner','admin']))
+  with check (public.has_org_role(organization_id,array['owner','admin']));
+
+drop policy if exists availability_rules_insert_org on public.availability_rules;
+drop policy if exists availability_rules_update_org on public.availability_rules;
+create policy availability_rules_insert_dispatcher on public.availability_rules for insert to authenticated
+  with check (public.has_org_role(organization_id,array['owner','admin','dispatcher']));
+create policy availability_rules_update_dispatcher on public.availability_rules for update to authenticated
+  using (public.has_org_role(organization_id,array['owner','admin','dispatcher']))
+  with check (public.has_org_role(organization_id,array['owner','admin','dispatcher']));
+
+drop policy if exists availability_exceptions_insert_org on public.availability_exceptions;
+drop policy if exists availability_exceptions_update_org on public.availability_exceptions;
+create policy availability_exceptions_insert_dispatcher on public.availability_exceptions for insert to authenticated
+  with check (public.has_org_role(organization_id,array['owner','admin','dispatcher']));
+create policy availability_exceptions_update_dispatcher on public.availability_exceptions for update to authenticated
+  using (public.has_org_role(organization_id,array['owner','admin','dispatcher']))
+  with check (public.has_org_role(organization_id,array['owner','admin','dispatcher']));
+
+drop policy if exists notification_outbox_insert_org on public.notification_outbox;
+drop policy if exists notification_outbox_update_org on public.notification_outbox;
+drop policy if exists workflow_events_update_org on public.workflow_events;
+drop policy if exists workflow_events_delete_admin on public.workflow_events;
+
 -- Public access is intentionally not granted. Webhook/automation services must use
 -- a server-side service role, never a key shipped to the browser.
