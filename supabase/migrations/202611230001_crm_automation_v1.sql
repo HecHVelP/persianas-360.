@@ -57,7 +57,7 @@ returns boolean language sql stable security definer set search_path = public as
 $$;
 
 create or replace function public.is_profile_in_same_org(p_user_id uuid)
-returns boolean language sql stable security definer set search_path = public as $
+returns boolean language sql stable security definer set search_path = public as $$
   select exists (
     select 1
     from public.organization_members mine
@@ -65,7 +65,7 @@ returns boolean language sql stable security definer set search_path = public as
     where mine.user_id = auth.uid() and mine.active
       and theirs.user_id = p_user_id and theirs.active
   );
-$;
+$$;
 
 revoke all on function public.is_org_member(uuid) from public;
 revoke all on function public.has_org_role(uuid,text[]) from public;
@@ -75,7 +75,7 @@ grant execute on function public.has_org_role(uuid,text[]) to authenticated;
 grant execute on function public.is_profile_in_same_org(uuid) to authenticated;
 
 create or replace function public.handle_new_auth_user_profile()
-returns trigger language plpgsql security definer set search_path = public as $
+returns trigger language plpgsql security definer set search_path = public as $$
 begin
   insert into public.profiles(id,full_name,preferred_language)
   values (
@@ -86,7 +86,7 @@ begin
   on conflict (id) do nothing;
   return new;
 end;
-$;
+$$;
 
 drop trigger if exists on_auth_user_created_profile on auth.users;
 create trigger on_auth_user_created_profile
